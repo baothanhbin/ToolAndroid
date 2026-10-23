@@ -5,6 +5,7 @@ __pycache__/
 .kotlin/
 build/
 build_*/
-dist/
+dist/*
+!dist/ToolAndroid.exe
 tmp_test_*/
 *.log
