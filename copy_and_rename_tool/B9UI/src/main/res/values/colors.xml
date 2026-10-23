@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#5AB2FF</color>
+    <color name="primaryDarkColor">#5AB2FF</color>
+    <color name="activeIndicator">#5AB2FF</color>
+    <color name="bottomNavigation">#32EAE7E7</color>
+    <color name="darkblueBlack">#13192F</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="color_404040">#404040</color>
+    <color name="switch_checked_color">#5AB2FF</color>
+    <color name="switch_unchecked_color">#BDBDBD</color>
+    <color name="color_70757E">#70757E</color>
+    <color name="color_5AB2FF">#5AB2FF</color>
+    <color name="color_C3C4C4">#C3C4C4</color>
+
+<!--    HINH ad for native layout-->
+    <color name="darkBlack">#80206080</color>
+    <color name="lightTransparent">#16000000</color>
+    <!--    end HINH-->
+
+
+
+    <color name="color_progress_splash">#5AB2FF</color>
+    <color name="color_808080_30">#4D808080</color>
+    <color name="disable_color">#898989</color>
+
+    <color name="language_selected_text_color">#FFFFFF</color>
+    <color name="language_unselected_text_color">#000000</color>
+
+
+    <color name="lang_select_color">#FFFFFF</color>
+    <color name="lang_unselect_color">#1A1A1A</color>
+    <color name="region_select_color">#80FFFFFF</color>
+    <color name="region_unselect_color">#B2B2B2</color>
+    <color name="extra_region_select_color">#FFFFFF</color>
+    <color name="extra_region_unselect_color">#1A1A1A</color>
+    <color name="color_E5E5E5">#E5E5E5</color>
+
+</resources>

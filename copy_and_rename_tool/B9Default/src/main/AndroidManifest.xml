@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application>
+        <activity
+            android:name="com.b9default.ui.intro1.IntroActivity1"
+            android:exported="true"
+            android:screenOrientation="portrait"/>
+
+        <activity
+            android:name="com.b9default.ui.splash.SplashActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|fontScale|locale|layoutDirection|density|smallestScreenSize" />
+
+        <activity
+            android:name="com.b9default.ui.language.LanguageStartActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|fontScale|locale|layoutDirection|density|smallestScreenSize" />
+
+        <activity
+            android:name="com.b9default.ui.language.LanguageSettingActivity"
+            android:exported="true" />
+
+        <activity
+            android:name="com.b9default.ui.no_internet.NoInternetActivity"
+            android:exported="true" />
+
+        <activity
+            android:name="com.b9default.ui.update.AppUpdateActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|fontScale|locale|layoutDirection|density|smallestScreenSize" />
+
+        <activity
+            android:name="com.b9default.ui.welcomeback.WelcomeBackActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|fontScale|locale|layoutDirection|density|smallestScreenSize" />
+
+        <activity
+            android:name="com.b9default.ui.test_native.TestNativeLayoutActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.ads.NativeFullActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|fontScale|locale|layoutDirection|density|smallestScreenSize"/>
+    </application>
+
+</manifest>

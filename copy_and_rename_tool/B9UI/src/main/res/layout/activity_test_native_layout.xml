@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/main_linear">
+
+        <!-- Add your views here -->
+
+    </LinearLayout>
+</ScrollView>
+
+<!--<androidx.appcompat.widget.LinearLayoutCompat-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:orientation="vertical"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android">-->
+
+<!--</androidx.appcompat.widget.LinearLayoutCompat>-->
+
+    <!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:id="@+id/main"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--    app:layout_constraintTop_toTopOf="parent"-->
+<!--    tools:context=".ui.common.TestNativeLayoutActivity">-->
+
+<!--  <Button-->
+<!--      android:layout_width="wrap_content"-->
+<!--      android:layout_height="wrap_content"-->
+<!--      app:layout_constraintLeft_toLeftOf="parent"-->
+<!--      app:layout_constraintRight_toRightOf="parent"-->
+<!--      app:layout_constraintTop_toTopOf="parent"-->
+<!--      android:id="@+id/btn_ads_native_1_button_2_media_3_info"-->
+<!--      android:text="ads_native_1_button_2_media_3_info">-->
+<!--  </Button>-->
+
+<!--    <Button-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/btn_ads_native_1_button_2_media_3_info"-->
+<!--        android:id="@+id/btn_ads_native_1_button_2_info_3_media"-->
+<!--        android:text="ads_native_1_button_2_info_3_media">-->
+<!--    </Button>-->
+
+<!--    <Button-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/btn_ads_native_1_button_2_info_3_media"-->
+<!--        android:id="@+id/btn_ads_native_1_media_2_info_3_button"-->
+<!--        android:text="ads_native_1_media_2_info_3_button">-->
+<!--    </Button>-->
+
+<!--    <FrameLayout-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        android:id="@+id/frAd">-->
+<!--    </FrameLayout>-->
+
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->

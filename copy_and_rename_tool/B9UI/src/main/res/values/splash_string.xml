@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="splash_text_1">This action may contain advertising…</string>
+    <string name="splash_text_2">Loading system libraries…</string>
+    <string name="splash_text_3">Loading application configuration…</string>
+    <string name="splash_text_4">Loading UI resources…</string>
+    <string name="splash_text_5">Connecting to server…</string>
+    <string name="splash_text_6">Checking for updates…</string>
+    <string name="splash_text_7">Loading executable file…</string>
+</resources>

@@ -1,0 +1,80 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">AMA Chatbot AI Smart Assistant</string>
+
+    <string name="please_wait_translate" translatable="false">Please wait</string>
+    <string name="translating" translatable="false">Translating</string>
+    <string name="selected_parent_font" translatable="false">fonts/inter_regular.ttf</string>
+    <string name="unselect_parent_font" translatable="false">fonts/inter_regular.ttf</string>
+    <string name="selected_region_font" translatable="false">fonts/inter_regular.ttf</string>
+    <string name="unselect_region_font" translatable="false">fonts/inter_regular.ttf</string>
+    <string name="selected_main_region_font" translatable="false">fonts/inter_regular.ttf</string>
+    <string name="unselect_main_region_font" translatable="false">fonts/inter_regular.ttf</string>
+    <!--    text activity splash-->
+    <string name="string_splash_description">This action may contain advertising.</string>
+    <!--    text activity intro-->
+    <string name="next">Next</string>
+    <string name="title_intro_1">String title \nIntro 1</string>
+    <string name="title_intro_2">String title \nIntro 2</string>
+    <string name="title_intro_3">String title \nIntro 3</string>
+    <string name="title_intro_4">String title \nIntro 4</string>
+    <string name="description_intro_1">Description 1</string>
+    <string name="description_intro_2">Description 2</string>
+    <string name="description_intro_3">Description 3</string>
+    <string name="description_intro_4">Description 4</string>
+    <!--    text activity language-->
+    <string name="string_language">Language</string>
+    <!--    text app update-->
+    <string name="update_available">Update available</string>
+    <string name="what_s_new">What’s new</string>
+    <string name="to_use_this_app_download_the_latest_version">To use this app, download the latest version</string>
+    <string name="update">Update</string>
+    <string name="cancel">Cancel</string>
+    <!--    text welcomeback-->
+    <string name="welcome_back1">Welcome back</string>
+    <string name="we_re_glad_to_have_you_here_again_let_s_pick_up_where_you_left_off_and_continue_your_journey">We\'re glad to have you here again. Let\'s pick up where you left off and continue your journey!</string>
+    <string name="contine">Continue</string>
+    <!--    rating dialog-->
+    <string name="do_you_like_this_app">Do you like this app?</string>
+    <string name="let_us_know_your_experience_5_stars_is_the_best_on_google_play">Let us know your experience 5 stars is the best on Google Play!</string>
+    <string name="submit">Submit</string>
+    <!--    text settings-->
+
+    <!--    text no internet-->
+    <string name="no_internet_connection">No Internet Connection</string>
+    <string name="please_check_your_internet_connection_and_try_again">Please check your internet connection and try again</string>
+    <string name="retry">Retry</string>
+    <!--    text feed back   -->
+    <string name="gmail_is_not_available_on_this_device_feedback_needs_to_be_sent_via_gmail_application">Gmail is not available on this device. Feedback needs to be sent via Gmail application</string>
+    <string name="feedback">Feedback</string>
+    <string name="empty_feedback_msg">Please send us some feedback.</string>
+
+
+    <string name="page_0_text">Ask AI Chatbot\nAnything</string>
+    <string name="page_1_text">Personalization\nAssistant</string>
+    <string name="page_2_text">Custom\nAI Characters</string>
+    <string name="page_3_text">AI Chat History</string>
+
+    <string name="start_conversation">Start Conversation</string>
+    <string name="please_wait">Please wait...</string>
+    <string name="customize_your_chatbot">Customize your chatbot</string>
+    <string name="settingg">Setting</string>
+    <string name="edit_your_ai_assitant">Edit Your Ai Assitant</string>
+
+    <string name="choose_your_subject">Choose your subject</string>
+    <string name="your_subject">Your subject</string>
+    <string name="what_tip_you_like_to_give_us">What tip you like to give us?</string>
+    <string name="enter_your_feedback">Enter your feedback</string>
+    <string name="send">Send</string>
+    <string name="ama_chatbot" translatable="false">AMA Chatbot</string>
+    <string name="please_select_chatbot_name">Please input assistant name</string>
+    <string name="please_select_professional_knowledge">Please input professional knowledge</string>
+    <string name="select">Select</string>
+
+
+    <string name="thank_you">Thank You!</string>
+    <string name="thank_you_for_taking_the_time_to_rate_us_i_m_really_appreciate_that">Thank you for taking the time to rate us. I’m really appreciate that.</string>
+    <string name="txt_language">Language</string>
+    <string name="msg_exit">Are you sure you want to exit?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+</resources>
