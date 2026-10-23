@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.gradle/
+.idea/
+.kotlin/
+build/
+build_*/
+dist/
+tmp_test_*/
+*.log

@@ -41,6 +41,8 @@ def scan_folder_for_rename_candidates(
     object_var_pattern: Pattern[str],
     fun_pattern: Pattern[str],
     ignore_names: Set[str],
+    rename_variables: bool = False,
+    rename_functions: bool = False,
 ) -> RenameCandidates:
     all_classes: Set[str] = set()
     all_vars: Set[str] = set()
@@ -58,6 +60,8 @@ def scan_folder_for_rename_candidates(
                 object_var_pattern,
                 fun_pattern,
                 ignore_names,
+                rename_variables,
+                rename_functions,
             )
             all_classes.update(nested.classes)
             all_vars.update(nested.vars)
@@ -65,9 +69,11 @@ def scan_folder_for_rename_candidates(
             all_var_type_map.update(nested.var_type_map)
         elif file.suffix in (".kt", ".java"):
             content = file.read_text(encoding="utf-8")
+            content = content.lstrip("\ufeff")
             file_base = file.stem
             is_kotlin = file.suffix == ".kt"
             is_java = file.suffix == ".java"
+            content = content.lstrip("\ufeff")
             lines = content.splitlines()
 
             if is_kotlin:
@@ -170,8 +176,11 @@ def scan_folder_for_rename_candidates(
 
     return RenameCandidates(
         classes=all_classes,
-        vars=all_vars,
-        functions=all_functions,
+        # Project-wide regex replacement cannot distinguish a project symbol
+        # from a same-named Android/Kotlin/library symbol. Keep these opt-in;
+        # the GUI uses the build-safe class/resource mode by default.
+        vars=all_vars if rename_variables else set(),
+        functions=all_functions if rename_functions else set(),
         var_type_map=all_var_type_map,
     )
 
@@ -231,12 +240,109 @@ def is_inside_string_literal(text: str, pos: int) -> bool:
     return in_string and interpolation_depth == 0
 
 
+def is_inside_binding_receiver_scope(text: str, pos: int) -> bool:
+    """Recognize unqualified binding fields inside `binding.x.apply { ... }`."""
+    stack: list[bool] = []
+    in_string = False
+    in_line_comment = False
+    in_block_comment = False
+    escaped = False
+    index = 0
+    while index < pos:
+        char = text[index]
+        next_char = text[index + 1] if index + 1 < pos else ""
+        if in_line_comment:
+            if char == "\n":
+                in_line_comment = False
+            index += 1
+            continue
+        if in_block_comment:
+            if char == "*" and next_char == "/":
+                in_block_comment = False
+                index += 2
+            else:
+                index += 1
+            continue
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+        if char == "/" and next_char == "/":
+            in_line_comment = True
+            index += 2
+            continue
+        if char == "/" and next_char == "*":
+            in_block_comment = True
+            index += 2
+            continue
+        if char == '"':
+            in_string = True
+            index += 1
+            continue
+        if char == "{":
+            prefix = text[max(0, index - 240):index]
+            receiver_call = re.search(r"([\w?.]+)\.(?:apply|run|with)\s*$", prefix)
+            if receiver_call:
+                receiver = receiver_call.group(1)
+                active = re.search(r"\b\w*[Bb]inding\w*\b", receiver) is not None
+            else:
+                with_call = re.search(r"\bwith\s*\(\s*([\w?.]+)\s*\)\s*$", prefix)
+                if with_call:
+                    active = re.search(r"\b\w*[Bb]inding\w*\b", with_call.group(1)) is not None
+                else:
+                    active = stack[-1] if stack else False
+            stack.append(active)
+        elif char == "}" and stack:
+            stack.pop()
+        index += 1
+    return stack[-1] if stack else False
+
+
 def normalize_type(type_name: str, name_suffix: str) -> str:
     return (
         type_name.replace(name_suffix, "")
         .removesuffix("?")
         .split("<")[0]
     )
+
+
+def find_annotation_ranges(text: str, annotation_names: Set[str]) -> list[tuple[int, int]]:
+    """Return balanced ranges for selected Kotlin/Java annotations."""
+    annotation_pattern = re.compile(
+        rf"@(?:{'|'.join(re.escape(name) for name in annotation_names)})\s*\("
+    )
+    ranges: list[tuple[int, int]] = []
+    for match in annotation_pattern.finditer(text):
+        depth = 1
+        in_string = False
+        escaped = False
+        index = match.end()
+        while index < len(text) and depth:
+            char = text[index]
+            if escaped:
+                escaped = False
+            elif char == "\\" and in_string:
+                escaped = True
+            elif char == '"':
+                in_string = not in_string
+            elif not in_string:
+                if char == "(":
+                    depth += 1
+                elif char == ")":
+                    depth -= 1
+            index += 1
+        if depth == 0:
+            ranges.append((match.start(), index))
+    return ranges
+
+
+def position_in_ranges(pos: int, ranges: Iterable[tuple[int, int]]) -> bool:
+    return any(start <= pos < end for start, end in ranges)
 
 
 def rename_folder_using_candidates(
@@ -252,6 +358,23 @@ def rename_folder_using_candidates(
             rename_folder_using_candidates(file, candidates, name_suffix, name_package)
         elif file.suffix in (".kt", ".java"):
             content = file.read_text(encoding="utf-8")
+            # Room uses the entity class name as the default table name. Keep
+            # that schema name stable when the Kotlin class is renamed, so
+            # existing @Query SQL continues to resolve after refactoring.
+            if file.suffix == ".kt":
+                for class_name in sorted(candidates.classes, key=len, reverse=True):
+                    if re.search(rf"\b(?:data\s+)?class\s+{re.escape(class_name)}\b", content):
+                        entity_match = re.search(r"@Entity(?:\s*\(([^)]*)\))?", content, re.DOTALL)
+                        if entity_match and "tableName" not in (entity_match.group(1) or ""):
+                            args = entity_match.group(1)
+                            replacement = (
+                                "@Entity(tableName = \"%s\"" % class_name
+                                + ((", " + args.strip()) if args and args.strip() else "")
+                                + ")"
+                            )
+                            content = content[:entity_match.start()] + replacement + content[entity_match.end():]
+                        break
+            content = content.lstrip("\ufeff")
             lines = content.splitlines()
             header_lines = [line for line in lines if line.lstrip().startswith("import ") or line.lstrip().startswith("package ")]
             code_lines = [line for line in lines if not (line.lstrip().startswith("import ") or line.lstrip().startswith("package "))]
@@ -302,30 +425,27 @@ def rename_folder_using_candidates(
                         if is_function:
                             return f"{match.group(0)}{name_suffix}"
 
+                        # Class candidates are declarations discovered in this
+                        # project. A lower-case owner is a package segment; an
+                        # upper-case owner must itself be one of our classes.
+                        # This avoids turning RecyclerView.ViewHolder into an
+                        # SDK type that does not exist.
                         before_dot = code_content[: start - 1]
-                        prev_token = re.search(r"\b(\w+)$", before_dot)
-                        prev_token_value = prev_token.group(1) if prev_token else ""
-                        prev_token_base = (
-                            prev_token_value[:-len(name_suffix)]
-                            if prev_token_value.endswith(name_suffix)
-                            else prev_token_value
+                        if re.search(r"\bR\.\w+$", before_dot):
+                            return match.group(0)
+                        owner_match = re.search(r"\b(\w+)(?:<[^<>]*>)?$", before_dot)
+                        owner = owner_match.group(1) if owner_match else ""
+                        owner_base = (
+                            owner[:-len(name_suffix)]
+                            if owner.endswith(name_suffix)
+                            else owner
                         )
-
-                        if prev_token_value == "this":
-                            return f"{match.group(0)}{name_suffix}"
-
-                        if prev_token_base in candidates.classes:
-                            return f"{match.group(0)}{name_suffix}"
-
-                        var_type = candidates.var_type_map.get(prev_token_base)
-                        if var_type is None:
-                            var_decl_regex = re.compile(rf"\b(\w+)\s+{re.escape(prev_token_value)}\b")
-                            var_match = var_decl_regex.search(code_content)
-                            var_type = var_match.group(1) if var_match else None
-                        var_type_base = (
-                            var_type[:-len(name_suffix)] if var_type and var_type.endswith(name_suffix) else var_type
-                        )
-                        if var_type_base in candidates.classes:
+                        if (
+                            not owner
+                            or owner[0].islower()
+                            or owner_base in candidates.classes
+                            or owner == "this"
+                        ):
                             return f"{match.group(0)}{name_suffix}"
                         return match.group(0)
 
@@ -338,11 +458,35 @@ def rename_folder_using_candidates(
 
             # Rename declarations/usages only when they are not part of a string literal.
             for var_name in vars_to_rename:
+                room_query_ranges = find_annotation_ranges(code_content, {"Query"})
+                room_annotation_ranges = find_annotation_ranges(
+                    code_content,
+                    {"Entity", "ForeignKey", "Index", "Query"},
+                )
+
                 def repl_var(match: re.Match[str], var_name: str = var_name) -> str:
                     start = match.start()
                     if var_name in KOTLIN_SYNTAX_NAMES:
                         return match.group(0)
                     if is_inside_string_literal(code_content, start):
+                        # Room stores schema column names and SQL bind parameters
+                        # in annotation strings. They must track renamed fields and
+                        # method parameters, unlike ordinary runtime strings.
+                        if position_in_ranges(start, room_annotation_ranges):
+                            before_string = code_content[max(0, start - 80):start]
+                            if not re.search(r"\btableName\s*=\s*\"[^\"]*$", before_string):
+                                if (
+                                    position_in_ranges(start, room_query_ranges)
+                                    and re.search(r"\b(?:FROM|UPDATE|INTO|JOIN)\s+$", before_string, re.IGNORECASE)
+                                ):
+                                    return match.group(0)
+                                return f"{match.group(0)}{name_suffix}"
+                        return match.group(0)
+
+                    # Names such as `entity`, `onDelete`, etc. are parameters of
+                    # Room's annotations rather than declarations owned by the
+                    # project. A same-named project field must not rewrite them.
+                    if position_in_ranges(start, room_annotation_ranges):
                         return match.group(0)
                     # Kotlin property accessors are syntax, not identifiers
                     # that may be renamed (get() / set()).
@@ -437,14 +581,26 @@ def rename_folder_using_candidates(
                     f"R.id.{new_field}",
                     code_content,
                 )
-                code_content = re.compile(rf"\b{re.escape(old_field)}\b").sub(
-                    lambda match: (
-                        match.group(0)
-                        if is_inside_string_literal(code_content, match.start())
-                        else new_field
-                    ),
-                    code_content,
-                )
+                # A binding field name can collide with unrelated symbols such
+                # as R.string.spotlight or a model property. Only rewrite a
+                # field reached through a variable whose name denotes binding.
+                field_pattern = re.compile(rf"\b{re.escape(old_field)}\b")
+
+                def replace_binding_field(match: re.Match[str]) -> str:
+                    start = match.start()
+                    if is_inside_string_literal(code_content, start):
+                        return match.group(0)
+                    line_prefix = code_content[code_content.rfind("\n", 0, start) + 1:start]
+                    if re.search(r"\b\w*[Bb]inding\w*(?:(?:\.|\?\.)\w+)*(?:\.|\?\.)$", line_prefix):
+                        return new_field
+                    if is_inside_binding_receiver_scope(code_content, start):
+                        return new_field
+                    # An unqualified occurrence may be a manually declared
+                    # ViewHolder/property with the same name. Without symbol
+                    # resolution it is unsafe to treat it as a binding field.
+                    return match.group(0)
+
+                code_content = field_pattern.sub(replace_binding_field, code_content)
 
             header_content = []
             for line in header_lines:
@@ -465,12 +621,20 @@ def rename_folder_using_candidates(
                     header_content.append(line)
                     continue
 
-                class_name = import_path[last_dot + 1:]
-                if class_name not in candidates.classes or class_name.endswith(name_suffix):
+                renamed_import_path = import_path
+                for candidate_class in sorted(candidates.classes, key=len, reverse=True):
+                    if candidate_class.endswith(name_suffix):
+                        continue
+                    renamed_import_path = re.sub(
+                        rf"(?<=\.){re.escape(candidate_class)}(?=\.|$)",
+                        f"{candidate_class}{name_suffix}",
+                        renamed_import_path,
+                    )
+                if renamed_import_path == import_path:
                     header_content.append(line)
                     continue
 
-                header_content.append(f"import {import_path}{name_suffix}")
+                header_content.append(f"import {renamed_import_path}")
 
             content = "\n".join(header_content + code_content.splitlines())
             file.write_text(content, encoding="utf-8", newline="\n")
@@ -484,6 +648,25 @@ def rename_folder_using_candidates(
         # (layout-land, values-night, xml, etc.) are processed consistently.
         elif file.suffix == ".xml":
             content = file.read_text(encoding="utf-8")
+            # Only AndroidManifest references should be rewritten here. In
+            # ordinary layouts a fully-qualified custom view may belong to a
+            # library module (for example B9UI); suffixing it would generate a
+            # binding Java class for a type that does not exist.
+            if file.name == "AndroidManifest.xml":
+                for class_name in sorted(candidates.classes, key=len, reverse=True):
+                    if class_name.endswith(name_suffix):
+                        continue
+                    renamed_class = f"{class_name}{name_suffix}"
+                    content = re.sub(
+                        rf"(?<![\w.])([\w]+(?:\.[\w]+)*)\.{re.escape(class_name)}\b",
+                        rf"\g<1>.{renamed_class}",
+                        content,
+                    )
+                    content = re.sub(
+                        rf"(?<![\w.])(\.(?:[\w]+\.)*){re.escape(class_name)}\b",
+                        rf"\g<1>{renamed_class}",
+                        content,
+                    )
             xml_id_pattern = re.compile(r"@\+?id/(\w+)")
             content = xml_id_pattern.sub(
                 lambda match: (

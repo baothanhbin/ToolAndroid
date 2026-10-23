@@ -1,120 +1,186 @@
-# � Copy & Rename & Android Setup Tool
+# ToolAndroid
 
-## 🚀 Giới thiệu
-Bộ công cụ **GUI** hỗ trợ quản lý file, đổi tên code, và tự động setup Android project.  
-Viết bằng **Python + Tkinter**, cung cấp giao diện thân thiện và dễ sử dụng.
+Ứng dụng desktop dành cho Windows, hỗ trợ thao tác file, đổi tên mã nguồn Android và tự động cấu hình project. Giao diện được viết bằng Python/Tkinter và có thể chạy trực tiếp bằng file `.exe`.
 
----
+## Tính năng
 
-## ✨ 3 Chức năng chính
+### Copy Tool
 
-### 1️⃣ **Copy Tool** 📂
-- ✔ **List**: Liệt kê tất cả file/folder trong source
-- ✔ **Copy**: Sao chép file từ source → destination
-- ✔ **Info**: Hiển thị thông tin chi tiết (kích thước, số lượng)
-- 🚫 Hỗ trợ ignore file theo danh sách
+- Liệt kê cấu trúc thư mục và thống kê số file, thư mục, dung lượng.
+- Sao chép file hoặc toàn bộ thư mục.
+- Xem thông tin chi tiết của file/thư mục.
+- Bỏ qua các file và thư mục không cần thiết như `.git`, `.gradle`, `.idea` và `build`.
 
-### 2️⃣ **Rename Tool** 🔄
-- 🧩 **Đổi tên Class** tự động (Java/Kotlin)
-- ⚙️ **Đổi tên Function** và Methods
-- 🔤 **Đổi tên Variables** an toàn
-- 📝 **Đổi tên XML IDs** thành Binding fields
-- 🎯 **Smart Pattern**: Tùy chỉnh regex pattern
-- 🚫 Tránh đổi tên bên trong string literals
+### Rename Tool
 
-### 3️⃣ **Android Setup** 🚀
-- ✔ Cập nhật `build.gradle` (Project + App)
-- ✔ Cập nhật `gradle.properties`
-- ✔ Cập nhật `gradle-wrapper.properties`
-- ✔ Tạo folder structure (`for_dev_`, `key`)
-- ✔ Thêm strings.xml entries
-- ✔ Copy folder từ project (for_dev_, key)
+- Thêm suffix vào tên class Java/Kotlin và đổi tên file tương ứng.
+- Cập nhật import, tham chiếu class và custom view trong XML.
+- Đổi XML ID và cập nhật View Binding/Data Binding tương ứng.
+- Rename local variable, private function và parameter của private function bằng symbol resolution của Kotlin compiler.
+- Bỏ qua thư mục generated/build để tránh sửa nhầm mã nguồn sinh tự động.
+- Không sửa nội dung chuỗi thông thường.
 
----
+Rename Tool kết hợp hai cơ chế:
 
-## 🛠️ Công nghệ sử dụng
-- **Python 3.14.3**
-- **Tkinter** (GUI framework)
-- **pathlib** (file operations)
-- **regex** (pattern matching)
+- Kotlin compiler frontend xác định declaration thật và chỉ đổi reference resolve về đúng declaration đó.
+- Bộ rename build-safe xử lý class/file, XML ID và binding field.
 
----
+Public API, hàm `override`, inherited member, property qua receiver và member của Android/Kotlin/thư viện ngoài được giữ nguyên. Tool tự chạy `clean assembleDebug`; nếu build lỗi, toàn bộ nội dung và tên file trong lần rename được rollback.
 
-## 📦 Cài đặt & chạy
+### Android Setup
 
-### 1️⃣ Yêu cầu
-- Python 3.8+
-- Tkinter (thường có sẵn với Python)
+- Cập nhật cấu hình Gradle của project và module app.
+- Cập nhật Gradle wrapper và `gradle.properties`.
+- Cấu hình signing, build types, product flavors và source sets.
+- Thêm các dependency/module `B9Ads`, `B9Default`, `B9UI`, `B9Util`.
+- Sao chép tài nguyên `for_dev_` và cấu trúc thư mục cần thiết.
+- Cập nhật strings và Android Manifest theo cấu hình của tool.
 
-### 2️⃣ Chạy ứng dụng
-```bash
+## Chạy ứng dụng
+
+### Cách nhanh nhất: dùng file EXE
+
+Mở file sau bằng double-click:
+
+```text
+copy_and_rename_tool\dist\ToolAndroid.exe
+```
+
+File EXE đã đóng gói Python, Tkinter và các tài nguyên cần thiết nên không yêu cầu cài Python trên máy đích.
+
+### Chạy từ source
+
+Yêu cầu Python 3.10 trở lên có hỗ trợ Tkinter và Android Studio (tool dùng Kotlin compiler đi kèm).
+
+```powershell
 cd copy_and_rename_tool
+python -m pip install -r requirements.txt
 python main.py
 ```
 
-### 3️⃣ Sử dụng Copy Tool
-1. Chọn **Tab "Copy Tool"**
-2. Nhập **Source folder** (hoặc click Browse)
-3. Nhập **Destination folder** (hoặc click Browse)
-4. Chọn hành động:
-   - **List**: Xem danh sách file
-   - **Copy**: Sao chép file
-   - **Info**: Xem thông tin
-5. Click **Execute** → xem kết quả
+## Hướng dẫn sử dụng
 
-### 4️⃣ Sử dụng Rename Tool
-1. Chọn **Tab "Rename Tool"**
-2. Nhập **Project folder** (Android project)
-3. Nhập **Package name** (vd: `com.example.app`)
-4. Nhập **Suffix** để thêm vào cuối (vd: `NEW`)
-5. *Tùy chỉnh regex (nếu cần):*
-   - Class pattern: `\b([A-Z][a-zA-Z0-9]*)\b`
-   - Function pattern: `fun\s+(\w+)\s*\(`
-6. Click **Scan & Rename** → review & confirm
+### Copy Tool
 
-### 5️⃣ Sử dụng Android Setup
-1. Chọn **Tab "Android Setup"**
-2. Chọn **Project folder** (Android project root)
-3. Click **Run All Setup Steps** 
-4. Xem output để kiểm tra từng bước
-5. **Manual steps** (sau khi run):
-   - Copy `google-services.json` vào `for_dev_`
-   - Copy keystore file vào `key/`
-   - Chỉnh sửa `AndroidManifest.xml` (activities)
-   - Chỉnh sửa `MyApplication.kt`
+1. Mở tab **Copy Tool**.
+2. Chọn đường dẫn nguồn tại **Source**.
+3. Chọn đường dẫn đích tại **Destination** nếu dùng chức năng Copy.
+4. Chọn một thao tác:
+   - **List**: liệt kê nội dung thư mục.
+   - **Copy**: sao chép dữ liệu.
+   - **Info**: xem thông tin đường dẫn.
+5. Nhấn **Execute** và kiểm tra kết quả trong khung log.
 
----
+### Rename Tool
 
-## 📋 File cấu hình
+> Nên commit hoặc sao lưu project trước khi rename. Tool có rollback tự động khi build lỗi, nhưng không thay thế version control.
 
-### `ignore.txt`
-Danh sách file/folder bỏ qua khi copy/rename:
+1. Mở tab **Rename Tool**.
+2. Tại **Thư mục**, chọn thư mục source set của module app, thông thường là:
+
+   ```text
+   <project>\app\src\main
+   ```
+
+3. Nhập package của ứng dụng, ví dụ `com.example.app`.
+4. Nhập suffix hợp lệ, ví dụ `New` hoặc `B9`.
+5. Kiểm tra Class pattern. Giá trị mặc định là:
+
+   ```regex
+   class\s+(\w+)
+   ```
+
+6. Giữ tùy chọn **Semantic rename (Kotlin compiler)** nếu muốn đổi local variable và private function.
+7. Nhấn **Bắt đầu Rename**.
+8. Tool tự chạy `clean assembleDebug`. Nếu build thất bại, thay đổi rename được rollback tự động.
+
+Rename chỉ áp dụng trong thư mục đã chọn. Nếu chọn `app\src\main`, các module khác như `security` sẽ không bị sửa.
+
+### Android Setup
+
+1. Mở tab **Android Setup**.
+2. Chọn thư mục root của Android project — nơi chứa `app`, `gradle` và file Gradle cấp project.
+3. Nhấn **Run All Setup Steps**.
+4. Theo dõi từng bước trong khung Output.
+5. Kiểm tra lại các dữ liệu riêng của project, đặc biệt:
+   - `google-services.json`;
+   - keystore và mật khẩu signing;
+   - activity trong `AndroidManifest.xml`;
+   - class `Application`;
+   - package/namespace của ứng dụng.
+
+## Build lại file EXE
+
+PyInstaller spec đã được lưu tại `copy_and_rename_tool/ToolAndroid.spec`.
+
+```powershell
+cd copy_and_rename_tool
+python -m PyInstaller --noconfirm --clean ToolAndroid.spec
 ```
-.git
-.gradle
-build
-.idea
-*.iml
-node_modules
+
+File kết quả được tạo tại:
+
+```text
+copy_and_rename_tool\dist\ToolAndroid.exe
 ```
 
----
+## Cấu trúc chính
 
-## 🐛 Troubleshooting
+```text
+ToolAndroid/
+├── copy_and_rename_tool/
+│   ├── main.py                          # Giao diện và entry point
+│   ├── scanFolderForRenameCandidates.py # Logic scan/rename
+│   ├── android_setup.py                 # Tự động cấu hình Android project
+│   ├── kotlin_ast_renamer.py             # Python bridge tới Kotlin semantic engine
+│   ├── kotlin-symbol-engine/             # Compiler frontend và packaged helper JAR
+│   ├── rename_transaction.py             # Build verification và rollback
+│   ├── test_rename_tool.py              # Regression tests cho Rename Tool
+│   ├── requirements.txt                  # Python dependencies
+│   ├── ToolAndroid.spec                 # Cấu hình build EXE
+│   ├── B9Ads/
+│   ├── B9Default/
+│   ├── B9UI/
+│   ├── B9Util/
+│   └── dist/ToolAndroid.exe
+└── README.md
+```
 
-**❌ Lỗi: "Project folder not found"**
-- Kiểm tra đường dẫn tuyệt đối có tồn tại không
+## Kiểm thử
 
-**❌ Lỗi: "build.gradle not found"**
-- Đảm bảo chọn thư mục **project root** (chứa `app/`, `gradle/`)
+Chạy regression tests của Rename Tool:
 
-**❌ Rename không hoạt động**
-- Kiểm tra **Package name** đúng
-- Kiểm tra **regex pattern** hợp lệ
-- Xem log để biết file bị skip
+```powershell
+cd copy_and_rename_tool
+python -m unittest -v test_rename_tool
+```
 
----
+Khi thay đổi logic rename, nên kiểm tra trên bản sao sạch của project và chạy `clean assembleDebug` trước khi sử dụng trên source chính.
 
-## 📄 License
-MIT License
+## Xử lý sự cố
 
+### Không tìm thấy project
+
+- Kiểm tra đường dẫn có tồn tại và tài khoản hiện tại có quyền đọc/ghi.
+- Với Android Setup, phải chọn thư mục root của project.
+- Với Rename Tool, nên chọn `<project>\app\src\main`.
+
+### Rename không tìm thấy class
+
+- Kiểm tra package đã nhập đúng.
+- Kiểm tra Class pattern có group capture cho tên class.
+- Đảm bảo mã nguồn nằm trong thư mục đã chọn.
+
+### Build lỗi sau rename
+
+- Không chạy rename nhiều lần với cùng một suffix.
+- Kiểm tra log để xác định symbol hoặc resource bị đổi sai.
+- Khôi phục bản sao/commit trước đó, cập nhật tool rồi chạy lại từ source sạch.
+
+### Windows cảnh báo khi mở EXE
+
+File được đóng gói cục bộ và chưa được ký code-signing. Windows SmartScreen có thể hiển thị cảnh báo với ứng dụng chưa có chữ ký số.
+
+## Giấy phép
+
+MIT License.

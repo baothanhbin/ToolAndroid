@@ -1,0 +1,1 @@
+# No parser dependency: semantic rename uses the Kotlin compiler bundled with Android Studio.

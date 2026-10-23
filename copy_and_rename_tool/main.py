@@ -12,6 +12,8 @@ from scanFolderForRenameCandidates import (
     rename_folder_using_candidates,
 )
 from android_setup import AndroidSetupHelper
+from kotlin_ast_renamer import rename_kotlin_locals_and_private_members
+from rename_transaction import RenameTransaction, find_gradle_project_root, run_verification_build
 
 # ── Thống kê ───────────────────────────────────────────────────────────────────
 class Stats:
@@ -156,6 +158,7 @@ class App:
         self.suffix_var = StringVar()
         self.class_pattern_var = StringVar(value=r"class\s+(\w+)")
         self.fun_pattern_var = StringVar(value=r"fun\s+(\w+)\s*\(")
+        self.strong_rename_var = BooleanVar(value=True)
 
         self.build_ui()
 
@@ -284,6 +287,16 @@ class App:
         ttk.Label(row5, text="Function pattern:").pack(side="left")
         self.fun_pattern_entry = ttk.Entry(row5, textvariable=self.fun_pattern_var)
         self.fun_pattern_entry.pack(side="left", fill="x", expand=True, padx=(8, 6))
+        self.fun_pattern_entry.configure(state="disabled")
+        ttk.Label(row5, text="(public/override vẫn được bảo vệ)").pack(side="left")
+
+        row6 = ttk.Frame(parent)
+        row6.pack(fill="x", pady=4)
+        ttk.Checkbutton(
+            row6,
+            text="Semantic rename (Kotlin compiler): local variables, private parameters/functions",
+            variable=self.strong_rename_var,
+        ).pack(side="left")
 
         # Buttons
         btn_row = ttk.Frame(parent)
@@ -539,6 +552,7 @@ class App:
 
         self.rename_output.delete("1.0", END)
 
+        transaction = None
         try:
             # Compile regex patterns
             try:
@@ -551,7 +565,13 @@ class App:
             ignore_names = {"main", "MainActivity", "Application"}
 
             self.log("Bắt đầu scan candidates...", is_rename=True)
+            self.log(
+                "Chế độ build-safe: public/override và API thư viện được bảo vệ.",
+                is_rename=True,
+            )
             t0 = time.time()
+            project_root = find_gradle_project_root(folder)
+            transaction = RenameTransaction(folder)
 
             # Scan for candidates
             candidates = scan_folder_for_rename_candidates(
@@ -575,8 +595,23 @@ class App:
             self.log("", is_rename=True)
             self.log("Bắt đầu rename...", is_rename=True)
 
+            if self.strong_rename_var.get():
+                ast_stats = rename_kotlin_locals_and_private_members(
+                    folder, suffix, package, project_root
+                )
+                self.log(
+                    f"  - Semantic rename: {ast_stats.variables} variables/parameters, "
+                    f"{ast_stats.functions} private functions trong {ast_stats.files} files",
+                    is_rename=True,
+                )
+
             # Rename files
             rename_folder_using_candidates(folder, candidates, suffix, package)
+
+            self.log("Đang chạy Gradle clean assembleDebug...", is_rename=True)
+            run_verification_build(project_root)
+            transaction.commit()
+            self.log("✔ Build kiểm tra thành công.", is_rename=True)
 
             elapsed = time.time() - t0
             self.log("", is_rename=True)
@@ -584,6 +619,9 @@ class App:
             messagebox.showinfo("Thành công", f"Rename hoàn tất trong {elapsed:.2f}s")
 
         except Exception as e:
+            if transaction is not None:
+                transaction.rollback()
+                self.log("↩ Đã rollback toàn bộ thay đổi rename.", is_rename=True)
             self.log(f"✘ Lỗi: {e}", is_rename=True)
             messagebox.showerror("Lỗi", f"Có lỗi xảy ra:\n{e}")
 
