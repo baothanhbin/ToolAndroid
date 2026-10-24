@@ -608,10 +608,8 @@ class App:
             # Rename files
             rename_folder_using_candidates(folder, candidates, suffix, package)
 
-            self.log("Đang chạy Gradle clean assembleDebug...", is_rename=True)
-            run_verification_build(project_root)
             transaction.commit()
-            self.log("✔ Build kiểm tra thành công.", is_rename=True)
+            self.log("✔ Đã hoàn tất rename (bỏ qua bước build Gradle).", is_rename=True)
 
             elapsed = time.time() - t0
             self.log("", is_rename=True)
